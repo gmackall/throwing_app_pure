@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# --- Configuration ---
+# 1. Update this variable with your app's actual package name (found in android/app/build.gradle, as 'applicationId').
+# Example: com.yourcompany.yourappname
+FLUTTER_PACKAGE_NAME="com.example.divbyzero"
+
+# Define the temporary APKS file location
+APKS_PATH="/tmp/app.apks"
+AAB_PATH="build/app/outputs/bundle/release/app-release.aab"
+SYMBOLS_PATH="build/app/outputs/symbols"
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+echo "--- 1. Building Flutter AAB (Release, Obfuscated) ---"
+flutter clean
+flutter build aab --release --obfuscate --split-debug-info=$SYMBOLS_PATH
+
+echo ""
+echo "--- 2. Building APKS from AAB using bundletool ---"
+# NOTE: This command requires the bundletool JAR to be accessible on your path.
+bundletool build-apks \
+  --bundle=$AAB_PATH \
+  --output=$APKS_PATH \
+  --mode=universal \
+  --overwrite
+
+echo ""
+echo "--- 3. Installing APKS to connected Android device(s) ---"
+bundletool install-apks --apks=$APKS_PATH
+
+echo ""
+echo "--- 4. Launching the App via ADB ---"
+# This command launches the main activity of the installed application.
+# The format is 'adb shell am start -n <package_name>/<main_activity_class>'
+# For most Flutter apps, the main activity is the package name + .MainActivity
+adb shell am start -n $FLUTTER_PACKAGE_NAME/$FLUTTER_PACKAGE_NAME.MainActivity
+
+echo ""
+echo "✅ Build, Install, and Launch complete."
+echo "Temporary file cleaned up: $APKS_PATH"
+rm $APKS_PATH
