@@ -1,7 +1,7 @@
 # throwing_app_pure
 
 
-1. Run `./build_and_run.sh`
+1. Run `./build_and_run.sh` (requires bundletool on the path)
 2. Clear the adb logs and then capture them after pressing the crash button: `adb logcat -d > /tmp/dart_crash_raw.txt`
 3. Run flutter symbolize: `flutter symbolize -i /tmp/dart_crash_raw.txt -d build/app/outputs/symbols/app.android-arm64.symbols > /tmp/dart_crash_symbolized_aab8.txt`
 4. Inspect the logs
